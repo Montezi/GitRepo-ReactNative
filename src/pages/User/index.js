@@ -34,7 +34,8 @@ export default class User extends Component {
   };
 
   async componentDidMount() {
-    setTimeout(() => this.setState({ visible: !this.state.visible }), 2500);
+    const { visible } = this.state;
+    setTimeout(() => this.setState({ visible: !visible }), 2500);
     const { navigation } = this.props;
     const user = navigation.getParam('user');
 
@@ -46,6 +47,7 @@ export default class User extends Component {
   render() {
     const { navigation } = this.props;
     const { stars } = this.state;
+    const { visible } = this.state;
     const user = navigation.getParam('user');
 
     return (
@@ -68,7 +70,7 @@ export default class User extends Component {
                 flexDirection: 'row',
               }}
               autoRun
-              visible={this.state.visible}
+              visible={visible}
             >
               <Starred>
                 <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
