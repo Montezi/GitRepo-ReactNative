@@ -18,6 +18,18 @@ import {
   Author,
 } from './styles';
 
+const styles = StyleSheet.create({
+  avatarOwner: {
+    height: 42,
+    width: 42,
+    borderRadius: 21,
+  },
+  loading: {
+    alignSelf: 'center',
+    marginVertical: 20,
+  },
+});
+
 export default class User extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: navigation.getParam('user').name,
@@ -26,6 +38,7 @@ export default class User extends Component {
   static propTypes = {
     navigation: PropTypes.shape({
       getParam: PropTypes.func,
+      navigate: PropTypes.func,
     }).isRequired,
   };
 
@@ -35,6 +48,7 @@ export default class User extends Component {
     loading: false,
     page: 1,
     more: false,
+    refreshing: false,
   };
 
   async componentDidMount() {
@@ -44,22 +58,18 @@ export default class User extends Component {
   }
 
   loadStars = async (page = 1) => {
-    // const { loading } = this.state;
-    // if (loading) return;
     const { navigation } = this.props;
     const { stars } = this.state;
     const user = navigation.getParam('user');
-    // const { page } = this.state;
-
-    // this.setState({ loading: true });
 
     const response = await api.get(`/users/${user.login}/starred?page=${page}`);
 
     this.setState({
-      stars: [...stars, ...response.data],
+      stars: page >= 2 ? [...stars, ...response.data] : response.data,
       page,
       loading: false,
       more: response.headers.link && response.headers.link.includes('next'),
+      refreshing: false,
     });
   };
 
@@ -82,9 +92,19 @@ export default class User extends Component {
     );
   };
 
+  refreshList = () => {
+    this.setState({ refreshing: true });
+    this.loadStars();
+  };
+
+  handleNavigate = repository => {
+    const { navigation } = this.props;
+    navigation.navigate('Repository', { repository });
+  };
+
   render() {
     const { navigation } = this.props;
-    const { stars, visible } = this.state;
+    const { stars, visible, refreshing } = this.state;
     const user = navigation.getParam('user');
 
     return (
@@ -100,8 +120,10 @@ export default class User extends Component {
           onEndReached={this.loadMore}
           onEndReachedThreshold={0.2}
           ListFooterComponent={this.renderFooter}
+          onRefresh={this.refreshList}
+          refreshing={refreshing}
           renderItem={({ item }) => (
-            <Starred>
+            <Starred onPress={() => this.handleNavigate(item)}>
               <ShimmerPlaceHolder
                 style={styles.avatarOwner}
                 autoRun
@@ -124,15 +146,3 @@ export default class User extends Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  avatarOwner: {
-    height: 42,
-    width: 42,
-    borderRadius: 21,
-  },
-  loading: {
-    alignSelf: 'center',
-    marginVertical: 20,
-  },
-});
