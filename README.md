@@ -12,6 +12,7 @@
 * styled-components
 * Reactotron
 * ESLint
+* React-native-shimmer-placeholder
 
 
 
